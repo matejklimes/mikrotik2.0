@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="title">{% block title %} Inputs {% endblock %}</h1>
+    <div class="content">
+        {% for input in inputs %}
+            <div class="input">
+                <p><b>#{{ input.id }}</b></p>
+                <b>
+                    <p class="ipaddress">{{ input.ipaddress }} {{ input.ipversion }}</p>
+                </b>
+                <p>Vložil: {{ input.dispatcher }}</p>
+                <p>{{ input.note }}</p>
+                <p>IP adresa: {{ input.ipaddress }}</p>
+                <div class="idk">
+                    <h4>Idk</h4>
+                    <p>{{ input.ipversion }}</p>
+                </div>
+                <a href="{{ url_for('edit', input_id=input.id) }}">Edit</a>
+                <hr>
+        <form method="POST"
+                action="{{ url_for('delete', input_id=input.id) }}">
+            <input type="submit" value="Delete IP address"
+                onclick="return confirm('Are you sure you want to delete this entry?')">
+        </form>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 style="width: 100%">
+        {% block title %} Edit {{ input.ipaddress }}
+                               
+        {% endblock %}
+    </h1>
+    <form method="post">
+        <p>
+            <label for="ipaddress">IP address</label>
+            <input type="text" name="ipaddress"
+                   value={{ input.ipaddress }}
+                   placeholder="IP address">
+            </input>
+        </p>
+
+        <p>
+            <label for="dispatcher">Dispatcher</label>
+            <input type="text" name="dispatcher"
+                   value={{ input.dispatcher }}
+                   placeholder="Dispatcher IP address">
+            </input>
+        </p>
+
+        <p>
+            <label for="ipversion">IP version</label>
+            <input type="text" name="ipversion"
+                   value={{ input.ipversion }}
+                   placeholder="IPv4/IPv6">
+            </input>
+        </p>
+
+        <p>
+            <label for="note">Note</label>
+            <input type="text" name="note"
+                   value={{ input.note }}
+                   placeholder="Note">
+            </input>
+        </p>
+        <p>
+            <button type="submit">Submit</button>
+        </p>
+    </form>
+{% endblock %}
