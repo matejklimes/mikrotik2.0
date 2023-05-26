@@ -21,6 +21,9 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import threading
+from sqlalchemy.schema import UniqueConstraint
+
 
 # Replace 'your_database_url' with the actual connection URL for your database
 engine = create_engine('mysql://student:yiJmf7G9kiQ7Vth**@localhost:3306/mikrotik')
@@ -117,6 +120,14 @@ def wait_for_connection(socket):
     monitor.close()
 
 
+import threading
+
+
+
+
+
+
+
 class Ipset:
     def __init__(self, name):
         self.name = name
@@ -125,28 +136,31 @@ class Ipset:
 
     def add_ip(self, ip):
         if self.regexp.fullmatch(ip):
-            self.commands.append('add {} {}\n'.format(self.name, ip))
-            data = Ipaddresses(ipaddress=ip)
-            #print(self.ipset)
-            #"INSERT INTO ipaddresses (ipaddress) VALUES (%s)"
-            session.add(data)
-            print(data,"add")
-            session.commit()
+            data = session.query(Ipaddresses).filter_by(ipaddress=ip).first()
+            if data is None:
+                self.commands.append('add {} {}\n'.format(self.name, ip))
+                data = Ipaddresses(ipaddress=ip)
+                session.add(data)
+                session.commit()
+                print(data, "added")
+            else:
+                print("IP address already exists: ", ip)
         else:
             logger.warning("IP address skipped as it is not IPv4: %s", ip)
 
     def del_ip(self, ip):
         if self.regexp.fullmatch(ip):
             self.commands.append('del {} {}\n'.format(self.name, ip))
-            data = Ipaddresses(ipaddress=ip)
-            #print(self.ipset)
-            #"INSERT INTO ipaddresses (ipaddress) VALUES (%s)"
-            session.delete(data)
-            print(data,"delete")
-            session.commit()
+            data = session.query(Ipaddresses).filter_by(ipaddress=ip).first()
+            if data is not None:
+                session.delete(data)
+                session.commit()
+                print(data, "deleted")
+            else:
+                print("Data not found or already deleted.")
         else:
             logger.warning("IP address removal skipped as it is not IPv4: %s", ip)
-
+        session.close()
     def reset(self):
         self.commands.append('create {} hash:ip -exist\n'.format(self.name))
         self.commands.append('flush {}\n'.format(self.name))
@@ -172,6 +186,11 @@ class Ipset:
         except OSError as e:
             # the rest of OSError should be temporary, e.g., ChildProcessError or BrokenPipeError
             logger.warning("Error running ipset command: %s.", str(e))
+
+
+
+
+
 
 
 def create_zmq_socket(context, server_public_file):
@@ -257,15 +276,7 @@ class DynfwList:
             self.socket.setsockopt(zmq.SUBSCRIBE, TOPIC_DYNFW_LIST.encode('utf-8'))
             return
         if msg["delta"] == "positive":
-            #self.ipset.add_ip(msg["ip"])
-            #got it-----------------------------------------------------------------------
-            #negr píčooo
-
-
-            
-
-            
-
+            self.ipset.add_ip(msg["ip"])
             logger.debug("DELTA message: +%s, serial %d", msg["ip"], msg["serial"])
         elif msg["delta"] == "negative":
             self.ipset.del_ip(msg["ip"])
